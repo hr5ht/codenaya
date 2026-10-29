@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { motion } from "motion/react";
+import { motion, useScroll } from "motion/react";
 import { Menu } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/sheet";
 import { SIGN_IN_URL, SIGN_UP_URL } from "@/features/auth/constants";
 import { CodenayaLogo } from "@/components/codenaya-logo";
-import { CustomCursor } from "@/components/ui/custom-cursor";
+import { SiteCursor } from "@/components/ui/site-cursor";
 import { GITHUB_REPO_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +38,7 @@ const isActive = (pathname: string, href: string) =>
 
 const cell = "flex h-full items-center border-border";
 const brandButton =
-  "h-9 rounded-md bg-brand px-4 text-sm font-medium text-brand-foreground shadow-[inset_0_-4px_8px_rgb(0_0_0/0.12),0_1px_2px_rgb(232_130_79/0.4)] hover:bg-brand/90";
+  "sheen h-9 rounded-md bg-brand px-4 text-sm font-medium text-brand-foreground shadow-[inset_0_-4px_8px_rgb(0_0_0/0.12),0_1px_2px_rgb(232_130_79/0.4)] hover:bg-brand/90";
 
 /** The current section is marked with the accent: a 6px dot, as status is elsewhere. */
 const ActiveDot = () => <span aria-hidden className="inline-block size-1.5 shrink-0 rounded-full bg-brand" />;
@@ -61,18 +61,25 @@ const Brand = () => (
 export const MarketingNavbar = ({ themeToggle }: { themeToggle?: ReactNode }) => {
   const pathname = usePathname();
   const { isSignedIn } = useAuth();
+  const { scrollYProgress } = useScroll();
 
   return (
     <>
       {/* Mounted here so the cursor is on every public page and never in the IDE.
           A sibling, not a child: the header's transform would trap its `fixed`. */}
-      <CustomCursor />
+      <SiteCursor />
       <motion.header
         initial={{ y: -8, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
         className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl backdrop-saturate-150"
       >
+        {/* A hairline under the bar that fills as the page scrolls. */}
+        <motion.div
+          aria-hidden
+          style={{ scaleX: scrollYProgress }}
+          className="absolute inset-x-0 -bottom-px h-px origin-left bg-brand"
+        />
         {/* Cells on the same 1200px frame as the landing page's grid */}
         <nav aria-label="Main" className="mx-auto flex h-14 max-w-[1200px] items-stretch border-x border-border">
           <div className={cn(cell, "px-5 md:border-r")}>

@@ -46,7 +46,7 @@ export const LandingHowItWorks = () => (
       {STEPS.map((step, i) => (
         <li
           key={step.title}
-          className="flex flex-col border-border not-last:border-b md:not-last:border-r md:not-last:border-b-0"
+          className="spotlight flex flex-col border-border not-last:border-b md:not-last:border-r md:not-last:border-b-0"
         >
           <div className="relative h-56 overflow-hidden border-b border-border bg-muted/30">{step.visual}</div>
           <div className="flex flex-1 flex-col gap-3 p-6 md:p-8">

@@ -3,6 +3,8 @@
 import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 
+import { revealTheme } from "@/lib/reveal-theme";
+
 /**
  * The landing page's own light/dark choice, separate from the app theme so it
  * never changes the dashboard or the IDE. Light until the visitor toggles it;
@@ -50,7 +52,7 @@ export const useLandingTheme = () => {
 export const LandingThemeToggle = ({ theme, onToggle }: { theme: LandingTheme; onToggle: () => void }) => (
   <button
     type="button"
-    onClick={onToggle}
+    onClick={(event) => revealTheme(event, onToggle)}
     aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
     className="flex h-full items-center justify-center px-4 text-muted-foreground transition-colors outline-none hover:bg-muted/50 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
   >

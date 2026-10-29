@@ -86,7 +86,7 @@ export const LandingFeatures = () => (
           transition={{ duration: 0.6, delay: (i % 3) * 0.08 }}
           className={cn(
             // Two cells per row (one wide from lg), so every odd cell ends its row.
-            "group flex flex-col border-border border-b last:border-b-0 md:border-r",
+            "spotlight group flex flex-col border-border border-b last:border-b-0 md:border-r",
             wide && "lg:col-span-2",
             i % 2 === 1 && "md:border-r-0",
             i >= FEATURES.length - 2 && "md:border-b-0",

@@ -119,7 +119,7 @@ export const LandingTrust = () => (
       {POINTS.map(({ icon: Icon, title, body, window, visual }, i) => (
         <li
           key={title}
-          className="group flex flex-col border-border max-sm:not-last:border-b sm:max-lg:odd:border-r sm:max-lg:[&:nth-last-child(n+3)]:border-b lg:[&:not(:nth-child(3n))]:border-r lg:[&:nth-last-child(n+4)]:border-b"
+          className="spotlight group flex flex-col border-border max-sm:not-last:border-b sm:max-lg:odd:border-r sm:max-lg:[&:nth-last-child(n+3)]:border-b lg:[&:not(:nth-child(3n))]:border-r lg:[&:nth-last-child(n+4)]:border-b"
         >
           <Reveal delay={(i % 3) * 0.08} className="flex flex-1 flex-col">
             <div className="flex h-36 items-center justify-center border-b border-border bg-muted/30 p-6 transition-colors group-hover:bg-brand/[0.04]">

@@ -159,7 +159,7 @@ const PricingPage = () => {
               key={plan.id}
               delay={i * 0.12}
               className={cn(
-                "relative flex flex-col p-6 md:p-10",
+                "spotlight flex flex-col p-6 md:p-10",
                 plan.id === "free"
                   ? "border-border max-md:border-b md:border-r"
                   : "bg-brand/[0.04]",

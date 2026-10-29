@@ -250,19 +250,6 @@ html.lenis, html.lenis body {
   overflow: hidden;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  @apply w-2 h-2;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply rounded-full bg-border border-[1px] border-transparent border-solid bg-clip-padding;
-}
-
 /* Allotment overrides for IDE */
 :root {
   --focus-border: transparent;
@@ -363,74 +350,94 @@ html.lenis, html.lenis body {
   @apply resize-none bg-transparent outline-none dark:bg-transparent;
 }
 
-/* Dashboard prompt composer: the chat composer's box, larger, with a slowly
-   rotating brand-colored border while focused. */
+/* While the prompt box has focus, a light orbits its border and an ambient
+   orange glow turns behind it. */
 @property --composer-angle {
   syntax: "<angle>";
   initial-value: 0deg;
   inherits: false;
 }
-@keyframes composer-border-spin {
+@keyframes composer-orbit {
   to {
     --composer-angle: 360deg;
   }
 }
-.prompt-composer {
+.composer-orbit {
   position: relative;
-  border-radius: 1rem;
 }
-.prompt-composer [data-slot="input-group"] {
-  @apply rounded-2xl!;
-}
-.prompt-composer::before {
+.composer-orbit::before,
+.composer-orbit::after {
   content: "";
   position: absolute;
-  inset: -1px;
-  z-index: 1;
-  padding: 1.5px;
-  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 400ms ease;
   background: conic-gradient(
     from var(--composer-angle),
     transparent 0%,
-    var(--brand) 18%,
-    color-mix(in oklab, var(--brand) 30%, #a78bfa) 32%,
+    var(--brand) 10%,
+    color-mix(in oklab, var(--brand) 45%, white) 16%,
+    transparent 30%,
     transparent 50%,
-    transparent 100%
+    color-mix(in oklab, var(--brand) 70%, transparent) 62%,
+    transparent 78%
   );
+  animation: composer-orbit 4s linear infinite;
+}
+/* The orbiting light: a 1.5px ring over the border. */
+.composer-orbit::before {
+  inset: -1px;
+  z-index: 2;
+  padding: 1.5px;
+  border-radius: inherit;
   mask:
     linear-gradient(#000 0 0) content-box exclude,
     linear-gradient(#000 0 0);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 200ms ease;
-  animation: composer-border-spin 4s linear infinite;
 }
-.prompt-composer:focus-within::before {
+/* The ambient light: the same gradient, blurred out behind the box. */
+.composer-orbit::after {
+  inset: -10px;
+  z-index: -1;
+  border-radius: 1rem;
+  filter: blur(22px);
+}
+.composer-orbit:focus-within::before {
   opacity: 1;
 }
+.composer-orbit:focus-within::after {
+  opacity: 0.55;
+}
 @media (prefers-reduced-motion: reduce) {
-  .prompt-composer::before {
+  .composer-orbit::before,
+  .composer-orbit::after {
     animation: none;
   }
 }
 
-/* The prompt box as a framed window (ComposerFrame): the composer flattened
-   inside it, with the starter chips as its bottom bar. */
-.composer-frame .prompt-composer::before {
+/* The prompt box's model menu (Radix Select): a plain scrollbar instead of
+   the scroll arrows, and an edge-to-edge list so the header and footer
+   strips can stick to its top and bottom. */
+.model-menu [data-slot="select-scroll-up-button"],
+.model-menu [data-slot="select-scroll-down-button"] {
   display: none;
 }
-.composer-frame [data-slot="input-group"] {
-  @apply rounded-none! border-0! bg-transparent! shadow-none! ring-0!;
+.model-menu [data-radix-select-viewport] {
+  padding: 0 !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 22%, transparent) transparent;
 }
-.composer-frame button[type="submit"]:not(:disabled) {
-  @apply bg-brand text-brand-foreground shadow-[inset_0_-4px_8px_rgb(0_0_0/0.12),0_1px_2px_rgb(232_130_79/0.4)] hover:bg-brand/90;
+.model-menu [data-slot="select-group"] {
+  padding: 0.25rem;
 }
-/* One row of starters; narrow screens scroll it sideways instead of wrapping. */
-.composer-frame .prompt-composer + div {
-  @apply mt-0 flex-nowrap justify-start gap-1 overflow-x-auto rounded-b-lg border-t border-border bg-muted/40 px-3 py-2.5 [scrollbar-width:none] max-md:[mask-image:linear-gradient(to_right,black_85%,transparent)];
+
+/* The prompt box window (PromptComposer): the shared InputGroup flattened
+   into it, so the window draws the border and focus ring. */
+.composer-window [data-slot="input-group"] {
+  /* Visible overflow, so a toolbar menu can open up over the prompt. */
+  @apply overflow-visible! rounded-none! border-0! bg-transparent! shadow-none! ring-0!;
 }
-.composer-frame .prompt-composer + div button {
-  @apply h-7 shrink-0 gap-1 rounded-md border-border bg-card px-2 font-mono text-[10px] tracking-[0.04em] uppercase;
+.composer-window [data-slot="input-group-control"] {
+  @apply resize-none bg-transparent outline-none dark:bg-transparent;
 }
 
 /* Starter templates as edge-to-edge cells on the page grid (showcase and
@@ -492,7 +499,7 @@ html.lenis, html.lenis body {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .composer-frame *,
+  .composer-window *,
   [class*="animate-[landing-"] {
     animation: none !important;
   }
@@ -513,4 +520,65 @@ html.lenis, html.lenis body {
     radial-gradient(at 15% 10%, oklch(0.42 0.12 var(--cover-h)) 0, transparent 60%),
     radial-gradient(at 90% 95%, oklch(0.38 0.12 var(--cover-h2)) 0, transparent 55%),
     oklch(0.2 0.03 var(--cover-h));
+}
+
+/* ─── Finishing touches ─── */
+
+::selection {
+  background-color: color-mix(in oklab, var(--brand) 28%, transparent);
+}
+
+/* A soft brand glow that follows the cursor across a grid cell (SpotlightTracker). */
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  background: radial-gradient(
+    360px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    color-mix(in oklab, var(--brand) 9%, transparent),
+    transparent 70%
+  );
+}
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+/* A light sweep across a brand button on hover. */
+@utility sheen {
+  position: relative;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transform: translateX(-120%);
+    background: linear-gradient(110deg, transparent 35%, rgb(255 255 255 / 0.35) 50%, transparent 65%);
+    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  &:hover::after {
+    transform: translateX(120%);
+  }
+}
+
+/* The theme switch grows as a circle (revealTheme), so no cross-fade. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight::before,
+  .sheen::after {
+    display: none;
+  }
 }

@@ -297,7 +297,7 @@ const DocsPage = () => {
             <Reveal
               key={id}
               delay={i * 0.08}
-              className="border-border max-sm:not-last:border-b sm:max-lg:odd:border-r sm:max-lg:[&:nth-child(-n+2)]:border-b lg:not-last:border-r"
+              className="spotlight border-border max-sm:not-last:border-b sm:max-lg:odd:border-r sm:max-lg:[&:nth-child(-n+2)]:border-b lg:not-last:border-r"
             >
               <a
                 href={`#${id}`}

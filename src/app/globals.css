@@ -7,7 +7,9 @@
    numbers (#286). */
 @source inline("list-decimal");
 
-@custom-variant dark (&:is(.dark *));
+/* The nearest `.light` or `.dark` wins, so the landing page can pick its own
+   theme inside the app's: a `.light` subtree of a dark app, or the reverse. */
+@custom-variant dark (&:is(.dark *):not(.dark .light *));
 
 @theme inline {
   --color-background: var(--background);
@@ -138,7 +140,8 @@
  * Inspired by: Swiss/International, Japandi, Kinetic, Modernist
  */
 
-:root {
+:root,
+.light {
   --radius: 0.75rem;
   --background: #faf8f5;
   --foreground: #1a1a1a;
@@ -408,6 +411,90 @@ html.lenis, html.lenis body {
 @media (prefers-reduced-motion: reduce) {
   .prompt-composer::before {
     animation: none;
+  }
+}
+
+/* The prompt box as a framed window (ComposerFrame): the composer flattened
+   inside it, with the starter chips as its bottom bar. */
+.composer-frame .prompt-composer::before {
+  display: none;
+}
+.composer-frame [data-slot="input-group"] {
+  @apply rounded-none! border-0! bg-transparent! shadow-none! ring-0!;
+}
+.composer-frame button[type="submit"]:not(:disabled) {
+  @apply bg-brand text-brand-foreground shadow-[inset_0_-4px_8px_rgb(0_0_0/0.12),0_1px_2px_rgb(232_130_79/0.4)] hover:bg-brand/90;
+}
+/* One row of starters; narrow screens scroll it sideways instead of wrapping. */
+.composer-frame .prompt-composer + div {
+  @apply mt-0 flex-nowrap justify-start gap-1 overflow-x-auto rounded-b-lg border-t border-border bg-muted/40 px-3 py-2.5 [scrollbar-width:none] max-md:[mask-image:linear-gradient(to_right,black_85%,transparent)];
+}
+.composer-frame .prompt-composer + div button {
+  @apply h-7 shrink-0 gap-1 rounded-md border-border bg-card px-2 font-mono text-[10px] tracking-[0.04em] uppercase;
+}
+
+/* Starter templates as edge-to-edge cells on the page grid (showcase and
+   dashboard). The page draws the section header, so the component's own
+   heading stays for screen readers only. */
+.templates-grid section > div:first-child {
+  @apply sr-only;
+}
+.templates-grid section > div:last-child {
+  @apply mx-0 gap-0 border-t border-border px-0 pb-0 max-sm:gap-3 max-sm:px-4 max-sm:py-4;
+}
+.templates-grid section > div:last-child > div {
+  @apply flex;
+}
+.templates-grid button[aria-label^="Use the"] {
+  @apply flex flex-col rounded-none! border-border bg-transparent shadow-none! transition-colors hover:bg-brand/[0.04] sm:border-0 sm:border-r sm:border-b;
+}
+/* The frame's rails close the last column. */
+@media (min-width: 40rem) and (max-width: 63.99rem) {
+  .templates-grid section > div:last-child > div:nth-child(2n) button {
+    border-right-width: 0;
+  }
+}
+@media (min-width: 64rem) {
+  .templates-grid section > div:last-child > div:nth-child(3n) button {
+    border-right-width: 0;
+  }
+}
+.templates-grid button[aria-label^="Use the"] > div:first-child {
+  @apply border-b border-border;
+}
+/* Tags sit on the bottom edge, so a one-line description doesn't misalign the row. */
+.templates-grid button[aria-label^="Use the"] > div:last-child {
+  @apply flex flex-1 flex-col p-6;
+}
+.templates-grid button[aria-label^="Use the"] > div:last-child > div:last-child {
+  @apply mt-auto pt-3;
+}
+.templates-grid button[aria-label^="Use the"] [data-slot="badge"] {
+  @apply rounded-sm bg-muted font-mono text-[9px] tracking-[0.08em] text-muted-foreground uppercase;
+}
+
+/* Small looping landing visuals (features.tsx). */
+@keyframes landing-flow {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+@keyframes landing-fill {
+  0% {
+    transform: scaleX(0);
+  }
+  70%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .composer-frame *,
+  [class*="animate-[landing-"] {
+    animation: none !important;
   }
 }
 

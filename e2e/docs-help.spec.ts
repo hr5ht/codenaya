@@ -55,17 +55,13 @@ test.describe("help menu (signed in)", () => {
     await page.goto("/");
   });
 
-  test("links to the docs, shortcuts and bug reports", async ({ page }) => {
+  test("links to the shortcuts and bug reports", async ({ page }) => {
     const errors = collectConsoleErrors(page);
     await openHelpMenu(page);
 
     await expect(helpMenu(page).getByRole("menuitem", { name: "Report a bug" })).toHaveAttribute(
       "href",
       /github\.com\/itsmrad\/codenaya\/issues\/new$/,
-    );
-    await expect(helpMenu(page).getByRole("menuitem", { name: "Docs" })).toHaveAttribute(
-      "href",
-      "/docs",
     );
 
     await helpMenu(page).getByRole("menuitem", { name: "Keyboard shortcuts" }).click();

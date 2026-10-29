@@ -66,7 +66,7 @@ export const LandingHero = () => {
           </motion.p>
 
           <motion.div {...enter(0.4)} className="mx-auto mt-10 max-w-3xl">
-            <LandingPromptComposer showStarters className="text-left" />
+            <LandingPromptComposer className="text-left" />
             <div className="mt-5 flex items-center justify-center gap-5 text-xs text-muted-foreground">
               <a
                 href={GITHUB_REPO_URL}

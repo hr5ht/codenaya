@@ -35,16 +35,6 @@ test.describe("landing hero prompt", () => {
     expect(errors).toEqual([]);
   });
 
-  test("a starter chip fills the hero prompt without leaving the page", async ({ page }) => {
-    await page.goto("/");
-
-    await page.getByRole("button", { name: "Portfolio", exact: true }).first().click();
-
-    await expect(
-      page.getByRole("textbox", { name: "Describe what you want to build" }).first(),
-    ).toHaveValue(/Portfolio/);
-    await expect(page).toHaveURL("/");
-  });
 
   test.describe("after sign-in", () => {
     test.skip(!hasClerkCredentials(), "needs CLERK_SECRET_KEY and NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY");

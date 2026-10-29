@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MotionConfig, motion } from "motion/react";
+import { MotionConfig, motion, useReducedMotion } from "motion/react";
+import { formatDistanceToNow } from "date-fns";
 import { useUser } from "@clerk/nextjs";
 import { GitBranch, Search } from "lucide-react";
 
@@ -11,6 +12,9 @@ import { CommunityRail } from "@/features/showcase/components/community-rail";
 import { StarterTemplates } from "@/features/templates/components/starter-templates";
 import { takePendingTemplate } from "@/features/templates/utils/pending-template";
 import { PromoBanner } from "@/features/promotions/components/promo-banner";
+import { GridPattern } from "@/components/landing/grid-pattern";
+import { CountUp, Reveal } from "@/components/landing/reveal";
+import { LabelBar, SectionHeader } from "@/components/landing/section-header";
 
 import { useProjects } from "../hooks/use-projects";
 import { useCreateProjectFromPrompt } from "../hooks/use-create-project-from-prompt";
@@ -42,6 +46,25 @@ export const ProjectsView = ({ linkedRepo = null }: ProjectsViewProps) => {
   const allProjects = useProjects();
   const hasNoProjects = allProjects?.length === 0;
   const { createProject, isSubmitting } = useCreateProjectFromPrompt();
+  const reduceMotion = useReducedMotion();
+  const enter = (delay: number) => ({
+    initial: reduceMotion ? false : { opacity: 0, y: 18, filter: "blur(6px)" },
+    animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+    transition: { duration: 0.7, delay, ease: EASE },
+  });
+
+  // From the user's own projects; a dash while they load.
+  const onGithub = allProjects?.filter(
+    (p) => p.importStatus === "completed" || p.exportStatus === "completed",
+  ).length;
+  const lastEdited = allProjects?.length
+    ? formatDistanceToNow(Math.max(...allProjects.map((p) => p.updatedAt)), { addSuffix: true })
+    : null;
+  const stats = [
+    { value: allProjects ? <CountUp to={allProjects.length} /> : "—", caption: "Projects" },
+    { value: onGithub !== undefined ? <CountUp to={onGithub} /> : "—", caption: "Linked to GitHub" },
+    { value: lastEdited ?? "—", caption: "Last edited" },
+  ];
 
   // A template picked on /showcase or a prompt typed on the landing page
   // before signing up: create its project now. Taking them clears them, so
@@ -109,93 +132,133 @@ export const ProjectsView = ({ linkedRepo = null }: ProjectsViewProps) => {
         onOpenChange={setNewProjectDialogOpen}
       />
 
-      <main className="h-full overflow-y-auto bg-background">
-        {/* ─── Hero: the prompt composer ─── */}
-        <section className="relative isolate overflow-hidden px-4 pt-14 pb-12 md:px-8 md:pt-20 md:pb-16">
-          {/* Static backdrop: a soft brand glow over a dot grid that fades out. */}
-          <div aria-hidden className="absolute inset-0 -z-10">
-            <div className="absolute inset-0 bg-[radial-gradient(color-mix(in_oklab,var(--foreground)_10%,transparent)_1px,transparent_1px)] bg-size-[22px_22px] mask-[radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]" />
-            <div className="absolute left-1/2 top-[-12rem] h-[26rem] w-[44rem] max-w-[140vw] -translate-x-1/2 rounded-full bg-brand/20 blur-[100px] dark:bg-brand/15" />
-            <div className="absolute left-[60%] top-[-6rem] h-64 w-96 max-w-[90vw] rounded-full bg-violet-500/10 blur-[90px]" />
-          </div>
-
-          <div className="mx-auto max-w-2xl">
-            <PromoBanner />
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: EASE }}
-              className="text-center"
-            >
-              <p className="h-5 text-sm text-muted-foreground">
-                {user?.firstName ? `Welcome back, ${user.firstName}` : null}
-              </p>
-              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-                What will you build?
-              </h2>
-              <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">
-                {hasNoProjects
-                  ? "Describe your first app, or start from one of these ideas."
-                  : "Describe an app and Codenaya builds it, with a live preview."}
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1, ease: EASE }}
-              className="mt-7"
-            >
-              <PromptComposer
-                onSubmit={createProject}
-                isSubmitting={isSubmitting}
-                showStarters
-              />
-              <div className="mt-5 flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                <button
-                  onClick={() => setImportDialogOpen(true)}
-                  className="flex items-center gap-1.5 transition-colors hover:text-foreground"
-                >
-                  <GitBranch className="size-3.5" />
-                  Import from GitHub
-                  <Kbd className="hidden text-[10px] sm:inline-flex">{isMac ? "⌘I" : "Ctrl+I"}</Kbd>
-                </button>
-                <span aria-hidden className="h-3 w-px bg-border" />
-                <button
-                  onClick={() => setCommandDialogOpen(true)}
-                  className="flex items-center gap-1.5 transition-colors hover:text-foreground"
-                >
-                  <Search className="size-3.5" />
-                  Find a project
-                  <Kbd className="hidden text-[10px] sm:inline-flex">{isMac ? "⌘K" : "Ctrl+K"}</Kbd>
-                </button>
+      <main className="flex flex-1 flex-col bg-background">
+        {/* The landing page's grid: one framed column, sections on shared borders. */}
+        <div className="mx-auto w-full max-w-[1200px] flex-1 border-x border-border">
+          {/* ─── Hero: the prompt composer ─── */}
+          <section className="border-b border-border">
+            <div className="relative isolate overflow-hidden px-6 pt-16 pb-14 md:px-12 md:pt-20 md:pb-16">
+              {/* The landing hero's backdrop: a grid fading out from the top centre, and a soft glow. */}
+              <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+                <div className="absolute inset-0 mask-[radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]">
+                  <GridPattern />
+                </div>
+                <div className="absolute left-1/2 top-[-14rem] h-[26rem] w-[44rem] max-w-[140vw] -translate-x-1/2 rounded-full bg-brand/15 blur-[110px] dark:bg-brand/10" />
               </div>
-            </motion.div>
-          </div>
-        </section>
 
-        {/* ─── Your work, then the community ─── */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2, ease: EASE }}
-          className="mx-auto max-w-6xl space-y-14 px-4 pb-16 md:px-8"
-        >
-          <FirstRunChecklist
-            projects={allProjects}
-            onNewProject={() => setNewProjectDialogOpen(true)}
-          />
-          <ProjectsGrid
-            projects={allProjects}
-            onNewProject={() => setNewProjectDialogOpen(true)}
-            onImport={() => setImportDialogOpen(true)}
-          />
-          <StarterTemplates
-            title="Start from a template"
-            description="Official starters that boot in the preview, then the agent builds them out"
-          />
-          <CommunityRail />
-        </motion.div>
+              <div className="mx-auto max-w-3xl">
+                <PromoBanner />
+                <div className="text-center">
+                  <motion.p
+                    {...enter(0.05)}
+                    className="h-5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground"
+                  >
+                    {user?.firstName ? `[ Welcome back, ${user.firstName} ]` : null}
+                  </motion.p>
+                  <motion.h2
+                    {...enter(0.12)}
+                    className="mt-5 text-[2.5rem] font-semibold leading-[1.02] tracking-[-0.045em] text-foreground sm:text-6xl"
+                  >
+                    What will you <span className="text-brand">build?</span>
+                  </motion.h2>
+                  <motion.p {...enter(0.2)} className="mx-auto mt-5 max-w-md text-[15px] leading-relaxed text-muted-foreground">
+                    {hasNoProjects
+                      ? "Describe your first app, or start from one of these ideas."
+                      : "Describe an app and Codenaya builds it, with a live preview."}
+                  </motion.p>
+                </div>
+
+                <motion.div {...enter(0.28)} className="mt-9">
+                  <PromptComposer
+                    onSubmit={createProject}
+                    isSubmitting={isSubmitting}
+                  />
+                  <div className="mt-5 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+                    <button
+                      onClick={() => setImportDialogOpen(true)}
+                      className="flex items-center gap-1.5 transition-colors hover:text-foreground"
+                    >
+                      <GitBranch className="size-3.5" />
+                      Import from GitHub
+                      <Kbd className="hidden text-[10px] sm:inline-flex">{isMac ? "⌘I" : "Ctrl+I"}</Kbd>
+                    </button>
+                    <span aria-hidden className="h-3 w-px bg-border" />
+                    <button
+                      onClick={() => setCommandDialogOpen(true)}
+                      className="flex items-center gap-1.5 transition-colors hover:text-foreground"
+                    >
+                      <Search className="size-3.5" />
+                      Find a project
+                      <Kbd className="hidden text-[10px] sm:inline-flex">{isMac ? "⌘K" : "Ctrl+K"}</Kbd>
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+
+          </section>
+
+          {/* ─── Your work ─── */}
+          <section className="border-b border-border">
+            <LabelBar label="Workspace" />
+            <FirstRunChecklist
+              projects={allProjects}
+              onNewProject={() => setNewProjectDialogOpen(true)}
+            />
+            <Reveal>
+              <ProjectsGrid
+                projects={allProjects}
+                onNewProject={() => setNewProjectDialogOpen(true)}
+                onImport={() => setImportDialogOpen(true)}
+              />
+            </Reveal>
+          </section>
+
+          {/* ─── At a glance: after the projects, which are what a returning user came for ─── */}
+          <section className="border-b border-border">
+            <LabelBar label="Overview" />
+            <Reveal>
+              <dl className="grid md:grid-cols-3">
+                {stats.map((stat) => (
+                  // A label over its value; nothing truncates.
+                  <div
+                    key={stat.caption}
+                    className="flex flex-col gap-1 border-border px-6 py-4 max-md:not-last:border-b md:px-8 md:not-last:border-r"
+                  >
+                    <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                      {stat.caption}
+                    </dt>
+                    <dd className="text-lg font-semibold tracking-tight text-foreground">{stat.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Reveal>
+          </section>
+
+          {/* ─── Templates, as cells on the grid (`templates-grid` in globals.css) ─── */}
+          <section className="templates-grid max-sm:border-b max-sm:border-border">
+            <SectionHeader
+              label="Templates"
+              title="Start from"
+              accent="a template."
+              description="Official starters that boot in the preview, then the agent builds them out."
+            />
+            <Reveal>
+              <StarterTemplates
+                title="Start from a template"
+                description="Official starters that boot in the preview, then the agent builds them out"
+              />
+            </Reveal>
+          </section>
+
+          {/* ─── The community; the whole block hides while the rail has nothing to show ─── */}
+          <div className="hidden border-b border-border has-[section]:block">
+            <LabelBar label="Community" />
+            <Reveal>
+              <CommunityRail />
+            </Reveal>
+          </div>
+        </div>
       </main>
     </MotionConfig>
   );

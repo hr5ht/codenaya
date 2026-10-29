@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import {
   PromptInputSelect,
   PromptInputSelectContent,
@@ -6,6 +8,7 @@ import {
   PromptInputSelectValue,
 } from "@/components/ai-elements/prompt-input";
 import { SelectGroup, SelectLabel } from "@/components/ui/select";
+import { VendorIcon } from "@/components/vendor-icon";
 import {
   Tooltip,
   TooltipContent,
@@ -27,6 +30,8 @@ import {
   usePlatformModelsOrCatalog,
 } from "@/features/ai-providers/hooks/use-ai-providers";
 
+import { cn } from "@/lib/utils";
+
 import type { AgentModelChoice } from "../agent-models";
 
 /** Item with a muted tag on the right (the model's vendor or key). Drawn as
@@ -38,6 +43,15 @@ interface AgentModelSelectProps {
   value: AgentModelChoice;
   onValueChange: (model: AgentModelChoice) => void;
   disabled?: boolean;
+  /** Extra trigger classes, e.g. to fill a toolbar cell. */
+  triggerClassName?: string;
+  /** Extra classes for the dropdown list. */
+  contentClassName?: string;
+  /** Shown above and below the list, e.g. the prompt box's menu strip and note. */
+  header?: ReactNode;
+  footer?: ReactNode;
+  /** Put each model's vendor mark before its name. */
+  withIcons?: boolean;
 }
 
 /**
@@ -50,7 +64,13 @@ export const AgentModelSelect = ({
   value,
   onValueChange,
   disabled,
+  triggerClassName,
+  contentClassName,
+  header,
+  footer,
+  withIcons = false,
 }: AgentModelSelectProps) => {
+  const icon = (vendor: string) => withIcons && <VendorIcon vendor={vendor} />;
   const keys = useAiProviderKeys() ?? [];
   const keyGroups = keys.filter(
     (key) => key.status === "active" || key._id === value.keyId,
@@ -76,7 +96,10 @@ export const AgentModelSelect = ({
           <PromptInputSelectTrigger
             size="sm"
             aria-label="Agent model"
-            className="h-7 min-w-0 max-w-64 gap-1 rounded-md px-2 text-xs dark:bg-transparent dark:hover:bg-accent"
+            className={cn(
+              "h-7 min-w-0 max-w-64 gap-1 rounded-md px-2 text-xs dark:bg-transparent dark:hover:bg-accent",
+              triggerClassName,
+            )}
           >
             <PromptInputSelectValue />
             {selectedPromo && (
@@ -92,7 +115,8 @@ export const AgentModelSelect = ({
             : runModelLabel({ id: selectedPlatformModel.id, label: selectedPlatformModel.name })}
         </TooltipContent>
       </Tooltip>
-      <PromptInputSelectContent position="popper" align="start" className="max-h-80">
+      <PromptInputSelectContent position="popper" align="start" className={cn("max-h-80", contentClassName)}>
+        {header}
         <SelectGroup>
           <SelectLabel>{PLATFORM_PROVIDER.label}</SelectLabel>
           {everyoneModels.map((model) => (
@@ -102,6 +126,7 @@ export const AgentModelSelect = ({
               data-tag={model.vendor}
               className={TAGGED_ITEM}
             >
+              {icon(model.vendor)}
               {model.name}
             </PromptInputSelectItem>
           ))}
@@ -116,6 +141,7 @@ export const AgentModelSelect = ({
                 data-tag={promoLimit(model.access)}
                 className={TAGGED_ITEM}
               >
+                {icon(model.vendor)}
                 {model.name}
               </PromptInputSelectItem>
             ))}
@@ -134,11 +160,13 @@ export const AgentModelSelect = ({
                 data-tag={key.label}
                 className={TAGGED_ITEM}
               >
+                {icon(key.provider)}
                 {model.label}
               </PromptInputSelectItem>
             ))}
           </SelectGroup>
         ))}
+        {footer}
       </PromptInputSelectContent>
     </PromptInputSelect>
   );

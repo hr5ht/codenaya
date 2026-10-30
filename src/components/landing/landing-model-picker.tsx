@@ -1,32 +1,36 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "convex/react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronDown } from "lucide-react";
 
-import { pickableModels } from "@/features/ai-providers/catalog";
+import { api } from "../../../convex/_generated/api";
+import { type PublicCatalogModel, pickableModels } from "@/features/ai-providers/catalog";
 import { envCatalog, platformProviderId } from "@/features/ai-providers/platform";
 import { setModel, useStoredAgentModel } from "@/features/conversations/hooks/use-agent-model";
 import { MenuHeader } from "@/components/menu-chrome";
 import { VendorIcon } from "@/components/vendor-icon";
 import { cn } from "@/lib/utils";
 
-// Signed out there is no catalog query, so offer the env catalog's models for
-// everyone. The pick is saved where the dashboard reads it; a model the admin
-// has since removed falls back to the default there.
-const CATALOG = envCatalog(platformProviderId());
-const MODELS = pickableModels(CATALOG.models, { claimed: false, active: false, countedRunsLeft: 0 });
+const NO_PROMO = { claimed: false, active: false, countedRunsLeft: 0 };
+const ENV_CATALOG = envCatalog(platformProviderId());
 
 /** The model chip in the landing prompt box's header. */
 export const LandingModelPicker = () => {
+  // The models a new account gets: the admin's catalog (everyone's models),
+  // else the env catalog's. The pick is saved where the dashboard reads it.
+  const saved = useQuery(api.platformCatalog.getForVisitors);
+  const catalog: { models: readonly PublicCatalogModel[]; defaultModelId: string } = saved ?? ENV_CATALOG;
+  const models = pickableModels(catalog.models, NO_PROMO);
   const stored = useStoredAgentModel();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   const selected =
-    MODELS.find((model) => !stored?.keyId && model.id === stored?.modelId) ??
-    MODELS.find((model) => model.id === CATALOG.defaultModelId) ??
-    MODELS[0];
+    models.find((model) => !stored?.keyId && model.id === stored?.modelId) ??
+    models.find((model) => model.id === catalog.defaultModelId) ??
+    models[0];
 
   // Close on an outside click or Escape.
   useEffect(() => {
@@ -43,7 +47,7 @@ export const LandingModelPicker = () => {
     };
   }, [open]);
 
-  if (!selected) return null;
+  if (saved === undefined || !selected) return null;
 
   return (
     <div ref={ref} className="relative flex">
@@ -73,7 +77,7 @@ export const LandingModelPicker = () => {
           >
             <MenuHeader className="sticky top-0 z-10 bg-muted backdrop-blur">Agent model</MenuHeader>
             <ul role="listbox" aria-label="Model" className="p-1">
-              {MODELS.map((model) => {
+              {models.map((model) => {
                 const active = model.id === selected.id;
                 return (
                   <li key={model.id} role="option" aria-selected={active}>

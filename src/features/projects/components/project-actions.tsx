@@ -149,23 +149,37 @@ export const DeleteProjectDialog = ({
   };
 
   return (
+    // The rename window's look: a `[ PROJECT ]` strip, a large title and a
+    // tinted footer, with the destructive action in place of Save.
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete “{project.name}”?</AlertDialogTitle>
-          <AlertDialogDescription>
+      <AlertDialogContent className="gap-0 overflow-hidden rounded-lg p-0 sm:max-w-md">
+        <div className="flex h-10 items-center border-b border-border bg-muted/40 px-4 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          <span className="flex items-center gap-2.5">
+            <span aria-hidden className="h-3 w-0.5 bg-destructive" />[ Project ]
+          </span>
+        </div>
+        <AlertDialogHeader className="px-6 py-6 text-left sm:text-left">
+          <AlertDialogTitle className="truncate text-2xl font-semibold tracking-[-0.03em]">
+            Delete <span className="text-destructive">“{project.name}”</span>?
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-[15px]">
             Its files, chats, env vars and skills are deleted for good, and it is
             removed from the showcase. This can&apos;t be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            className={buttonVariants({ variant: "destructive" })}
-            onClick={handleDelete}
-          >
-            Delete project
-          </AlertDialogAction>
+        <AlertDialogFooter className="items-center border-t border-border bg-muted/30 px-6 py-3.5 sm:justify-between">
+          <span className="hidden font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:block">
+            Esc cancel
+          </span>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row">
+            <AlertDialogCancel className="rounded-md">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={cn(buttonVariants({ variant: "destructive" }), "rounded-md")}
+              onClick={handleDelete}
+            >
+              Delete project
+            </AlertDialogAction>
+          </div>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

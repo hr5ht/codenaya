@@ -22,14 +22,14 @@ const submitHeroPrompt = async (page: Page, prompt: string) => {
 };
 
 test.describe("landing hero prompt", () => {
-  test("a signed-out prompt is kept and routes to sign-up on mobile", async ({ page }) => {
+  test("a signed-out prompt is kept and routes to sign-in on mobile", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     const errors = collectConsoleErrors(page);
     await page.goto("/");
 
     await submitHeroPrompt(page, "A recipe app");
 
-    await expect(page).toHaveURL(/\/sign-up/);
+    await expect(page).toHaveURL(/\/sign-in/);
     expect(await pendingPrompt(page)).toBe("A recipe app");
     await page.waitForLoadState("networkidle");
     expect(errors).toEqual([]);
@@ -43,7 +43,7 @@ test.describe("landing hero prompt", () => {
       test.setTimeout(120_000);
       await page.goto("/");
       await submitHeroPrompt(page, SMOKE_PROMPT);
-      await expect(page).toHaveURL(/\/sign-up/);
+      await expect(page).toHaveURL(/\/sign-in/);
 
       await signIn(page);
       await page.goto("/");
